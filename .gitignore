@@ -1,0 +1,36 @@
+# =========================
+# CONFIGS LOCAIS / SENSÍVEIS
+# =========================
+appsettings.json
+appsettings.Development.json
+appsettings.Local.json
+secrets.json
+
+Resources/credentials.json
+Resources/
+
+# =========================
+# VISUAL STUDIO
+# =========================
+.vs/
+*.user
+*.suo
+*.userosscache
+*.VC.db
+
+# =========================
+# BUILD OUTPUT (.NET)
+# =========================
+bin/
+obj/
+
+# =========================
+# TEST OUTPUT
+# =========================
+TestResults/
+*.trx
+
+# =========================
+# WORKSPACE / IDE / CI
+# =========================
+workspace/
