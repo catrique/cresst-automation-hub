@@ -33,6 +33,9 @@ namespace AutomationApp.Configuration
         public string LoginUrl {get; set;} = string.Empty;
         public string UserAccess {get; set;} = string.Empty;
         public string Authorization {get; set;} = string.Empty;
+        public long  MedicalInstitutionId {get; set;}
+        public long AsoFormId {get; set;}
+        public string FormFieldType {get; set;} = string.Empty;
         public Dictionary<string, string> Endpoints {get;set;} = new();
     }
 

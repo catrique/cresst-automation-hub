@@ -13,7 +13,6 @@ namespace AutomationApp.Controllers.Betha
 
             Console.Write("\nDigite ou cole o caminho completo da planilha Excel:\n> ");
             string pathSpreadsheet = Console.ReadLine()?.Trim() ?? "";
-
             pathSpreadsheet = pathSpreadsheet.Trim('"');
 
             if (string.IsNullOrWhiteSpace(pathSpreadsheet))
@@ -39,10 +38,11 @@ namespace AutomationApp.Controllers.Betha
             Action<string> logger = message => Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {message}");
 
             var bethaService = new BethaAsoIntegrationService(logger);
-            
             await bethaService.ProcessSpreadsheetAsosAsync(pathSpreadsheet);
 
-            Console.WriteLine("\n[Fim do Bloco de Execução do Controlador]");
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.WriteLine("\nPressione qualquer tecla para voltar ao menu...");
+            Console.ReadKey(true);
         }
     }
 }

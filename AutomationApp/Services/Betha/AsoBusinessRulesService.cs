@@ -1,4 +1,3 @@
-using System;
 using System.Globalization;
 using System.Text;
 
@@ -6,52 +5,54 @@ namespace AutomationApp.Services.Betha
 {
     public class AsoBusinessRulesService
     {
-        public string NormalizeExamType(string excelExamtype)
+        public string NormalizeExamType(string excelExamType)
         {
-            if (string.IsNullOrWhiteSpace(excelExamtype))
-            {
+            if (string.IsNullOrWhiteSpace(excelExamType))
                 throw new ArgumentException("O tipo de exame está em branco na planilha.");
-            }
 
-            string text = excelExamtype.ToUpper().Trim();
+            string text = RemoveAccents(excelExamType.Trim().ToUpper());
 
-            text = RemoveAccents(text);
+            if (text == "RETORNO AO TRABALHO") return "RETORNO_TRABALHO";
+            if (text == "MUDANCA DE FUNCAO") return "MUDANCA_FUNCAO";
 
-            if (text.Contains("ADMISSIONAL")) return "ADMISSIONAL";
-            if (text.Contains("DEMISSIONAL")) return "DEMISSIONAL";
-            if (text.Contains("PERIODICO")) return "PERIODICO"; 
-            if (text.Contains("RETORNO")) return "RETORNO_TRABALHO";
-            if (text.Contains("MUDANCA") || text.Contains("FUNCAO")) return "MUDANCA_FUNCAO";
-
-            throw new FormatException($"O tipo de exame '{excelExamtype.Trim()}' não é reconhecido pelo sistema.");
+            return text;
         }
 
-        public (DateTime examDate, DateTime expirationDate) CalculateDates(string examDateStr, string normalizedExamType, string resultExcel)
+        public (string dataExame, string dataInicioAtividades, string dataValidade) CalcularDatas(
+            string dataExameExcel,
+            string resultadoExcel,
+            string tipoExameNormalizado,
+            string? dataInicioContrato)
         {
-            if (string.IsNullOrWhiteSpace(examDateStr))
+            if (string.IsNullOrWhiteSpace(dataExameExcel))
                 throw new FormatException("A data do exame está em branco ou nula na planilha.");
 
-            DateTime examDate = DateTime.ParseExact(examDateStr, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None);
+            if (!DateTime.TryParseExact(dataExameExcel.Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dtExame))
+                throw new FormatException($"A data do exame '{dataExameExcel}' não está em um formato válido (dd/MM/yyyy).");
 
-            if (!DateTime.TryParse(examDateStr, new CultureInfo("pt-BR"), DateTimeStyles.None, out examDate))
+            string dataFormatada = dtExame.ToString("yyyy-MM-dd");
+
+            string dataInicioAtividades;
+            if (tipoExameNormalizado == "DEMISSIONAL")
             {
-                if (!DateTime.TryParse(examDateStr, CultureInfo.InvariantCulture, DateTimeStyles.None, out examDate))
-                {
-                    throw new FormatException($"A data do exame '{examDateStr}' não está em um formato válido (dd/MM/yyyy).");
-                }
+                if (string.IsNullOrWhiteSpace(dataInicioContrato))
+                    throw new Exception("Data de início de contrato (matrícula) não localizada para exame demissional.");
+                dataInicioAtividades = dataInicioContrato;
+            }
+            else
+            {
+                int diasOffset = dtExame.DayOfWeek == DayOfWeek.Friday ? 3 : 1;
+                dataInicioAtividades = dtExame.AddDays(diasOffset).ToString("yyyy-MM-dd");
             }
 
-            DateTime expirationDate;
-            string result = resultExcel.ToUpper().Trim();
+            string resultadoLimpo = resultadoExcel.Trim().ToUpper();
+            DateTime dtValidade = tipoExameNormalizado == "DEMISSIONAL"
+                ? dtExame.AddMonths(3)
+                : resultadoLimpo == "APTO"
+                    ? dtExame.AddYears(1)
+                    : dtExame.AddMonths(3);
 
-            if (normalizedExamType == "DEMISSIONAL")
-                expirationDate = examDate.AddMonths(3);
-            else if (normalizedExamType == "RETORNO_TRABALHO" && result.Contains("INAPTO"))
-                expirationDate = examDate.AddMonths(3);
-            else
-                expirationDate = examDate.AddYears(1);
-
-            return (examDate, expirationDate);
+            return (dataFormatada, dataInicioAtividades, dtValidade.ToString("yyyy-MM-dd"));
         }
 
         private string RemoveAccents(string text)
@@ -63,9 +64,7 @@ namespace AutomationApp.Services.Betha
             {
                 UnicodeCategory uc = CharUnicodeInfo.GetUnicodeCategory(ch);
                 if (uc != UnicodeCategory.NonSpacingMark)
-                {
                     sb.Append(ch);
-                }
             }
 
             return sb.ToString().Normalize(NormalizationForm.FormC);
