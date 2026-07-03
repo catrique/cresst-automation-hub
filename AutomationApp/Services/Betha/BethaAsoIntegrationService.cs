@@ -8,10 +8,12 @@ namespace AutomationApp.Services.Betha
     public class BethaAsoIntegrationService
     {
         private readonly Action<string> _logger;
+        private readonly AsoSpreadsheetStorageService _storageService;
 
         public BethaAsoIntegrationService(Action<string> logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _storageService = new AsoSpreadsheetStorageService(_logger);
         }
 
         public async Task ProcessSpreadsheetAsosAsync(string pathSpreadsheet)
@@ -37,7 +39,7 @@ namespace AutomationApp.Services.Betha
                         var line = worksheet.Row(l);
                         var statusAtual = line.Cell(12).GetString().Trim().ToUpper();
 
-                        if (statusAtual == "SUCESSO") continue;
+                        if (statusAtual == "SUCESSO" || statusAtual == "JA_CADASTRADO" || statusAtual == "JA_EXISTE") continue;
 
                         var aso = new BethaAsoData
                         {
@@ -81,6 +83,23 @@ namespace AutomationApp.Services.Betha
 
                     try
                     {
+                        var checkerService = new BethaAsoCheckerService(middleware, _logger);
+                        string resultadoCheck = await checkerService.VerificarSeAsoExisteAsync(item.Matricula, item.DataExame, item.TipoExame);
+
+                        if (resultadoCheck == "JA_CADASTRADO")
+                        {
+                            blocked++;
+                            _storageService.AtualizarStatusLinha(pathSpreadsheet, item.LinhaPlanilha, "JA_CADASTRADO", "ASO já cadastrado na base da Betha Cloud.");
+                            continue;
+                        }
+
+                        if (resultadoCheck == "MATRICULA_INVALIDA")
+                        {
+                            blocked++;
+                            _storageService.AtualizarStatusLinha(pathSpreadsheet, item.LinhaPlanilha, "MATRICULA_INVALIDA", "Erro: Matrícula inválida ou não informada.");
+                            continue;
+                        }
+
                         if (string.IsNullOrWhiteSpace(item.Cpf))
                             throw new Exception("Divergência: CPF está em branco na planilha.");
 
@@ -134,34 +153,7 @@ namespace AutomationApp.Services.Betha
                         blocked++;
                     }
 
-                    try
-                    {
-                        using (var workbook = new XLWorkbook(pathSpreadsheet))
-                        {
-                            var worksheet = workbook.Worksheet(1);
-                            var linhaExcel = worksheet.Row(item.LinhaPlanilha);
-
-                            if (item.StatusProcessamento == "SUCESSO")
-                            {
-                                linhaExcel.Cell(12).Value = "SUCESSO";
-                                linhaExcel.Cell(13).Value = item.MotivoStatus;
-                                linhaExcel.Cell(12).Style.Fill.BackgroundColor = XLColor.LightGreen;
-                                linhaExcel.Cell(13).Style.Font.FontColor = XLColor.Black;
-                            }
-                            else
-                            {
-                                linhaExcel.Cell(12).Value = "ERRO";
-                                linhaExcel.Cell(13).Value = item.MotivoStatus;
-                                linhaExcel.Cell(12).Style.Fill.BackgroundColor = XLColor.LightPink;
-                                linhaExcel.Cell(13).Style.Font.FontColor = XLColor.Red;
-                            }
-                            workbook.Save();
-                        }
-                    }
-                    catch (Exception exExcel)
-                    {
-                        _logger($"⚠️ Alerta crítica: Falha ao salvar status da linha {item.LinhaPlanilha} no Excel: {exExcel.Message}");
-                    }
+                    _storageService.AtualizarStatusLinha(pathSpreadsheet, item.LinhaPlanilha, item.StatusProcessamento, item.MotivoStatus);
                 }
 
                 Console.WriteLine();
