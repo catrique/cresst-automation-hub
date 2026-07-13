@@ -1,4 +1,7 @@
 using AutomationApp.Services.Soc;
+using AutomationApp.Utils;
+using AutomationApp.Models.Soc;
+using Microsoft.Playwright;
 
 namespace AutomationApp.Controllers.Soc
 {
@@ -11,21 +14,117 @@ namespace AutomationApp.Controllers.Soc
             _logger = message => Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {message}");
         }
 
+        public async Task RegisterEmployeesAsync()
+        {
+            Console.Clear();
+            MessageConsole.Info("=== HIGIENIZAÇÃO E CADASTRO DE FUNCIONÁRIOS (SOC) ===");
+
+            Console.Write("\nDigite ou cole o caminho completo da planilha Excel:\n> ");
+            string pathSpreadsheet = Console.ReadLine()?.Trim() ?? "";
+            pathSpreadsheet = pathSpreadsheet.Trim('\"');
+
+            if (string.IsNullOrWhiteSpace(pathSpreadsheet))
+            {
+                MessageConsole.Error("\n❌ Erro: O caminho da planilha não pode ser vazio.");
+                return;
+            }
+
+            if (!File.Exists(pathSpreadsheet))
+            {
+               MessageConsole.Error($"\n❌ Erro: O arquivo não foi encontrado:\n[{pathSpreadsheet}]");
+                return;
+            }
+
+            MessageConsole.Success($"\n✅ Arquivo detectado com sucesso: {Path.GetFileName(pathSpreadsheet)}\n");
+
+            Console.Write("--- Qual é o Setor Base/Padrão?\n> ");
+            string setorBase = Console.ReadLine()?.Trim() ?? "";
+
+            _logger("Iniciando processamento da planilha de funcionários...");
+            var integrationService = new SocEmployeeIntegrationService(_logger);
+            var employees = await integrationService.ProcessEmployeeSpreadsheetAsync(pathSpreadsheet);
+
+            _logger("Iniciando automação web de cadastro...");
+            var webService = new SocEmployeeWebAutomationService(_logger);
+            
+            await webService.ExecuteWebAutomationAsync(employees, setorBase);
+
+            MessageConsole.Success("\n✅ Processo de Cadastro de Funcionários Finalizado!");
+
+            Console.Write("\n👉 Deseja prosseguir para os Agendamentos de Exames (Tela 236) usando esta mesma janela do navegador? (S/N): ");
+            string resposta = Console.ReadLine()?.Trim().ToUpper() ?? "N";
+
+            if (resposta == "S" || resposta == "SIM")
+            {
+                IPage? paginaAtiva = webService.GetPage();
+                
+                await ScheduleAppointmentsAsync(paginaAtiva, pathSpreadsheet);
+            }
+            else
+            {
+                await webService.CloseAsync();
+            }
+        }
+
+        public async Task ScheduleAppointmentsAsync(IPage? paginaAtiva = null, string caminhoPlanilhaPredefinido = "")
+        {
+            if (paginaAtiva == null)
+                Console.Clear();
+            
+            MessageConsole.Info("\n=== AGENDAMENTO DE EXAMES/COMPROMISSOS (SOC) ===");
+
+            string pathSpreadsheet = caminhoPlanilhaPredefinido;
+
+            if (string.IsNullOrWhiteSpace(pathSpreadsheet))
+            {
+                Console.Write("\nDigite ou cole o caminho completo da planilha Excel de Agendamentos:\n> ");
+                pathSpreadsheet = Console.ReadLine()?.Trim() ?? "";
+                pathSpreadsheet = pathSpreadsheet.Trim('\"');
+            }
+
+            if (string.IsNullOrWhiteSpace(pathSpreadsheet) || !File.Exists(pathSpreadsheet))
+            {
+                MessageConsole.Error("\n❌ Erro: Arquivo de agendamentos não encontrado ou caminho inválido.");
+                return;
+            }
+
+            Console.WriteLine("\nQual é o Tipo de Compromisso?");
+            Console.WriteLine("1️⃣ - Admissional");
+            Console.WriteLine("2️⃣ - Periódico");
+            Console.WriteLine("3️⃣ - Retorno ao Trabalho");
+            Console.WriteLine("4️⃣ - Mudança de Riscos Ocupacionais");
+            Console.WriteLine("5️⃣ - Demissional");
+            Console.WriteLine("6️⃣ - Monitoração Pontual");
+            Console.Write("\n Escolha uma opção (1-6): ");
+
+            string tipoCompromisso = Console.ReadLine()?.Trim() ?? "1";
+            var appointmentIntegration = new SocAppointmentIntegrationService(_logger);
+            var appointments = appointmentIntegration.ProcessAppointmentSpreadsheet(pathSpreadsheet);
+            var appointmentWebService = new SocAppointmentWebAutomationService(_logger);
+            
+            await appointmentWebService.ExecuteAppointmentAutomationAsync(appointments, tipoCompromisso, paginaAtiva);
+
+            MessageConsole.Success("\n✅ Pipeline de Agendamento de Exames Concluído!");
+        }
+
         public async Task<int> DownloadAsosAsync()
         {
-            Console.Write("\nDigite a data de INÍCIO (ex: 10/06/2026): ");
-            string dataInicio = Console.ReadLine()?.Trim() ?? "";
-
-            Console.Write("Digite a data de FIM    (ex: 16/06/2026): ");
-            string dataFim = Console.ReadLine()?.Trim() ?? "";
+            string[] args = Environment.GetCommandLineArgs();
+            string? dataInicio = args.Length > 1 ? args[1] : null;
+            string? dataFim = args.Length > 2 ? args[2] : null;
 
             if (string.IsNullOrWhiteSpace(dataInicio) || string.IsNullOrWhiteSpace(dataFim))
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("\n❌ Erro: As datas não podem ser vazias.");
-                Console.ResetColor();
-                Console.WriteLine("\nUso correto: AutomationApp.exe <data_inicio> <data_fim>");
-                Console.WriteLine("Exemplo:    AutomationApp.exe 01/06/2026 05/06/2026\n");
+                Console.Write("Digite a data de início (dd/MM/yyyy): ");
+                dataInicio = Console.ReadLine();
+
+                Console.Write("Digite a data de fim (dd/MM/yyyy): ");
+                dataFim = Console.ReadLine();
+            }
+
+            if (string.IsNullOrWhiteSpace(dataInicio) || string.IsNullOrWhiteSpace(dataFim))
+            {
+                MessageConsole.Error("\n❌ Erro: As datas não podem ser vazias.");
                 return 1;
             }
 
@@ -33,18 +132,15 @@ namespace AutomationApp.Controllers.Soc
             var cultura = System.Globalization.CultureInfo.InvariantCulture;
 
             if (!DateTime.TryParseExact(dataInicio, formato, cultura, System.Globalization.DateTimeStyles.None, out _) ||
-    !DateTime.TryParseExact(dataFim, formato, cultura, System.Globalization.DateTimeStyles.None, out _))
+                !DateTime.TryParseExact(dataFim, formato, cultura, System.Globalization.DateTimeStyles.None, out _))
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("\n❌ Erro: Uma ou ambas as datas estão em um formato inválido.");
-                Console.WriteLine($"As datas devem seguir estritamente o padrão {formato}.");
-                Console.ResetColor();
+                MessageConsole.Error($"\n❌ Erro: Uma ou ambas as datas estão em um formato inválido.\nAs datas devem seguir estritamente o padrão {formato}.");
                 return 1;
             }
 
             try
             {
-                _logger($"Iniciando o processo de automação de ASOs...");
+                _logger("Iniciando o processo de automação de ASOs...");
                 var socService = new SocAsoService(_logger);
                 await socService.DownloadAsosByPeriodAsync(dataInicio, dataFim);
 
@@ -53,10 +149,8 @@ namespace AutomationApp.Controllers.Soc
             }
             catch (Exception ex)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                _logger($"Erro durante a execução da automação: {ex.Message}");
-                Console.ResetColor();
-                return 2;
+                MessageConsole.Error($"Erro durante a execução da automação: {ex.Message}");
+                return 1;
             }
         }
     }

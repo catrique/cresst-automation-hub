@@ -1,4 +1,5 @@
 using AutomationApp.Services.Betha;
+using AutomationApp.Utils;
 
 namespace AutomationApp.Controllers.Betha
 {
@@ -7,41 +8,30 @@ namespace AutomationApp.Controllers.Betha
         public async Task SubmitAsosAsync()
         {
             Console.Clear();
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine("=== LANÇAMENTO DE ASOS VIA API (BETHA) ===");
-            Console.ResetColor();
-
+            MessageConsole.Info("\n=== LANÇAMENTO DE ASOS VIA API (BETHA) ===");
             Console.Write("\nDigite ou cole o caminho completo da planilha Excel:\n> ");
             string pathSpreadsheet = Console.ReadLine()?.Trim() ?? "";
             pathSpreadsheet = pathSpreadsheet.Trim('"');
 
             if (string.IsNullOrWhiteSpace(pathSpreadsheet))
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("\n❌ Erro: O caminho da planilha não pode ser vazio.");
-                Console.ResetColor();
+                MessageConsole.Error("\n❌ Erro: O caminho da planilha não pode ser vazio.");
                 return;
             }
 
             if (!File.Exists(pathSpreadsheet))
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"\n❌ Erro: O arquivo não foi encontrado:\n[{pathSpreadsheet}]");
-                Console.ResetColor();
+                MessageConsole.Error($"\n❌ Erro: O arquivo não foi encontrado:\n[{pathSpreadsheet}]");
                 return;
             }
 
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"\n✅ Arquivo detectado com sucesso: {Path.GetFileName(pathSpreadsheet)}\n");
-            Console.ResetColor();
+            MessageConsole.Success($"\n✅ Arquivo detectado com sucesso: {Path.GetFileName(pathSpreadsheet)}\n");
 
             Action<string> logger = message => Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {message}");
 
             var bethaService = new BethaAsoIntegrationService(logger);
             await bethaService.ProcessSpreadsheetAsosAsync(pathSpreadsheet);
 
-            Console.ForegroundColor = ConsoleColor.Gray;
-            Console.WriteLine("\nPressione qualquer tecla para voltar ao menu...");
             Console.ReadKey(true);
         }
     }

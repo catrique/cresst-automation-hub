@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using Microsoft.Playwright;
 using AutomationApp.Services.Utils;
 
@@ -73,6 +71,11 @@ namespace AutomationApp.Services.Soc
             if (_page != null) await _page.CloseAsync();
             if (_context != null) await _context.CloseAsync();
             if (_browser != null) await _browser.CloseAsync();
+        }
+
+        public IPage? GetPage()
+        {
+            return _page;
         }
     }
 }

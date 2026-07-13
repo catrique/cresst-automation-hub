@@ -1,3 +1,4 @@
+using AutomationApp.Controllers.Betha;
 using AutomationApp.Controllers.Config;
 using AutomationApp.Controllers.Soc;
 
@@ -21,6 +22,9 @@ namespace AutomationApp.Commands
                 Console.WriteLine("4. Atualizar Configurações de Proxy");
                 Console.WriteLine("5. Atualizar Token");
                 Console.WriteLine("6. Lançar ASOs via API (Betha)");
+                Console.WriteLine("7. Higienizar e Validar Funcionários (SOC)");
+                Console.WriteLine("8. Agendar Compromissos/Exames (SOC)");
+                Console.WriteLine("9. Corrigir nomes do SOC");
                 Console.WriteLine("0. Sair");
                 Console.Write("\nEscolha uma opção: ");
 
@@ -63,10 +67,25 @@ namespace AutomationApp.Commands
                 case "5":
                     await configController.UpdateBearerTokenSettingsAsync();
                     break;
-                    
+
                 case "6":
-                    var bethaController = new AutomationApp.Controllers.Betha.BethaAutomationController();
+                    var bethaController = new BethaAutomationController();
                     await bethaController.SubmitAsosAsync();
+                    break;
+                case "7":
+                    var socEmployeeController = new SocAutomationController();
+                    await socEmployeeController.RegisterEmployeesAsync();
+                    break;
+                case "8":
+                    var socAppointmentController = new SocAutomationController();
+                    await socAppointmentController.ScheduleAppointmentsAsync(paginaAtiva: null);
+                    break;
+                case "9":
+                    var socUpdateEmployeeNamesController = new SocAutomationController();
+                    // var bethaExportEmployeeNamesController = new BethaAutomationController();
+                    // string pathSpreadsheetBethaEmployeeNames = await bethaExportEmployeeNamesController.ExportEmployeeNamesAsync();
+                    string pathSpreadsheetBethaEmployeeNames = @"C:\Users\42706671840\Downloads\cresst-workspace\relatorios\employees_09-07-2026_12-24.xlsx";
+                    await socUpdateEmployeeNamesController.UpdateEmployeeNamesAsync(pathSpreadsheetBethaEmployeeNames);
                     break;
                 default:
                     Console.ForegroundColor = ConsoleColor.Red;
