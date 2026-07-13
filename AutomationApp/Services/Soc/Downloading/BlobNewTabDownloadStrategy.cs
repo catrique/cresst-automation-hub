@@ -16,9 +16,8 @@ public class BlobNewTabDownloadStrategy : IFileDownloadStrategy
 
         var newTab = await newTabTask;
         await newTab.WaitForLoadStateAsync(LoadState.NetworkIdle);
-        await Task.Delay(WaitAfterClickMs); 
-        string title = await newTab.TitleAsync();
-        string filename = ExtractFilename(newTab.Url, title);
+        await Task.Delay(WaitAfterClickMs);
+        string filename = ExtractFilename(newTab.Url);
 
         string base64 = await ExtractBlobAsBase64Async(newTab);
 
@@ -28,14 +27,18 @@ public class BlobNewTabDownloadStrategy : IFileDownloadStrategy
         return (bytes, filename);
     }
 
-    private static string ExtractFilename(string url, string title)
+    private static string ExtractFilename(string url)
     {
-        if (!string.IsNullOrWhiteSpace(title) && title.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
-            return title;
+        if (!string.IsNullOrWhiteSpace(url))
+        {
+            string guid = url[(url.LastIndexOf('/') + 1)..];
+
+            if (Guid.TryParse(guid, out _))
+                return $"{guid}.pdf";
+        }
 
         return $"ASO_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
     }
-
     private static async Task<string> ExtractBlobAsBase64Async(IPage tab)
     {
         string blobUrl = await tab.EvaluateAsync<string>(@"

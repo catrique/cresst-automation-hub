@@ -31,7 +31,7 @@ namespace AutomationApp.Controllers.Soc
 
             if (!File.Exists(pathSpreadsheet))
             {
-               MessageConsole.Error($"\n❌ Erro: O arquivo não foi encontrado:\n[{pathSpreadsheet}]");
+                MessageConsole.Error($"\n❌ Erro: O arquivo não foi encontrado:\n[{pathSpreadsheet}]");
                 return;
             }
 
@@ -46,7 +46,7 @@ namespace AutomationApp.Controllers.Soc
 
             _logger("Iniciando automação web de cadastro...");
             var webService = new SocEmployeeWebAutomationService(_logger);
-            
+
             await webService.ExecuteWebAutomationAsync(employees, setorBase);
 
             MessageConsole.Success("\n✅ Processo de Cadastro de Funcionários Finalizado!");
@@ -57,7 +57,7 @@ namespace AutomationApp.Controllers.Soc
             if (resposta == "S" || resposta == "SIM")
             {
                 IPage? paginaAtiva = webService.GetPage();
-                
+
                 await ScheduleAppointmentsAsync(paginaAtiva, pathSpreadsheet);
             }
             else
@@ -70,7 +70,7 @@ namespace AutomationApp.Controllers.Soc
         {
             if (paginaAtiva == null)
                 Console.Clear();
-            
+
             MessageConsole.Info("\n=== AGENDAMENTO DE EXAMES/COMPROMISSOS (SOC) ===");
 
             string pathSpreadsheet = caminhoPlanilhaPredefinido;
@@ -101,7 +101,7 @@ namespace AutomationApp.Controllers.Soc
             var appointmentIntegration = new SocAppointmentIntegrationService(_logger);
             var appointments = appointmentIntegration.ProcessAppointmentSpreadsheet(pathSpreadsheet);
             var appointmentWebService = new SocAppointmentWebAutomationService(_logger);
-            
+
             await appointmentWebService.ExecuteAppointmentAutomationAsync(appointments, tipoCompromisso, paginaAtiva);
 
             MessageConsole.Success("\n✅ Pipeline de Agendamento de Exames Concluído!");
@@ -151,6 +151,43 @@ namespace AutomationApp.Controllers.Soc
             {
                 MessageConsole.Error($"Erro durante a execução da automação: {ex.Message}");
                 return 1;
+            }
+        }
+
+        public async Task<bool> UpdateEmployeeNamesAsync(string pathSpreadsheetBethaEmployeeNames)
+        {
+            Console.Clear();
+            MessageConsole.Info("=== CORREÇÃO DO NOME DE CADASTRO DOS SERVIDORES(SOC) ===");
+
+            pathSpreadsheetBethaEmployeeNames.Trim('\"');
+
+            if (string.IsNullOrWhiteSpace(pathSpreadsheetBethaEmployeeNames))
+            {
+                MessageConsole.Error("\n❌ Erro: O caminho da planilha não pode ser vazio.");
+                return false;
+            }
+
+            if (!File.Exists(pathSpreadsheetBethaEmployeeNames))
+            {
+                MessageConsole.Error($"\n❌ Erro: O arquivo não foi encontrado:\n[{pathSpreadsheetBethaEmployeeNames}]");
+                return false;
+            }
+
+            MessageConsole.Success($"\n✅ Arquivo detectado com sucesso: {Path.GetFileName(pathSpreadsheetBethaEmployeeNames)}\n");
+
+            try
+            {
+                _logger("Iniciando o processo de correção de nomes no SOC");
+                var socService = new SocUpdateEmployeeNameByReportBethaService(_logger, pathSpreadsheetBethaEmployeeNames);
+                await socService.ProcessSpreadsheetBethaAsync();
+
+                _logger("Pipeline finalizado com sucesso.");
+                return false;
+            }
+            catch (Exception ex)
+            {
+                MessageConsole.Error($"Erro durante a execução da automação: {ex.Message}");
+                return true;
             }
         }
     }

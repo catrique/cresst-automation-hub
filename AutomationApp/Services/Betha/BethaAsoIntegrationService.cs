@@ -2,7 +2,6 @@ using System.Text.Json;
 using ClosedXML.Excel;
 using Microsoft.Extensions.DependencyInjection;
 using AutomationApp.Models.Betha;
-
 namespace AutomationApp.Services.Betha
 {
     public class BethaAsoIntegrationService
@@ -43,18 +42,18 @@ namespace AutomationApp.Services.Betha
 
                         var aso = new BethaAsoData
                         {
-                            LinhaPlanilha       = l,
-                            Funcionario         = line.Cell(1).GetString().Trim(),
-                            Cpf                 = line.Cell(2).GetString().Trim(),
-                            Matricula           = line.Cell(3).GetString().Trim(),
-                            Cargo               = line.Cell(4).GetString().Trim(),
-                            TipoExame           = line.Cell(5).GetString().Trim(),
-                            Resultado           = line.Cell(6).GetString().Trim(),
-                            DataExame           = line.Cell(7).GetString().Trim(),
-                            DataInicio          = line.Cell(8).GetString().Trim(),
-                            MedicoExaminador    = line.Cell(9).GetString().Trim(),
-                            MedicoPcmso         = line.Cell(10).GetString().Trim(),
-                            PdfPath             = line.Cell(11).GetString().Trim(),
+                            LinhaPlanilha = l,
+                            Funcionario = line.Cell(1).GetString().Trim(),
+                            Cpf = line.Cell(2).GetString().Trim(),
+                            Matricula = line.Cell(3).GetString().Trim(),
+                            Cargo = line.Cell(4).GetString().Trim(),
+                            TipoExame = line.Cell(5).GetString().Trim(),
+                            Resultado = line.Cell(6).GetString().Trim(),
+                            DataExame = line.Cell(7).GetString().Trim(),
+                            DataInicio = line.Cell(8).GetString().Trim(),
+                            MedicoExaminador = line.Cell(9).GetString().Trim(),
+                            MedicoPcmso = line.Cell(10).GetString().Trim(),
+                            PdfPath = line.Cell(11).GetString().Trim(),
                             StatusProcessamento = "PENDENTE"
                         };
                         listAsos.Add(aso);
@@ -107,7 +106,7 @@ namespace AutomationApp.Services.Betha
                         if (cpfLimpo.Length != 11)
                             throw new Exception($"Divergência: O CPF informado [{item.Cpf}] possui tamanho inválido.");
 
-                        if (Program.Settings.Betha?.Api?.Endpoints == null || 
+                        if (Program.Settings.Betha?.Api?.Endpoints == null ||
                             !Program.Settings.Betha.Api.Endpoints.TryGetValue("RegistrationList", out string? endpointBuscaCpf))
                             throw new Exception("Erro de Configuração: Rota 'RegistrationList' ausente no appsettings.");
 
@@ -122,7 +121,7 @@ namespace AutomationApp.Services.Betha
                         {
                             using JsonDocument doc = JsonDocument.Parse(jsonCpfResult);
                             JsonElement root = doc.RootElement;
-                            if (root.TryGetProperty("content", out JsonElement contentArray) && 
+                            if (root.TryGetProperty("content", out JsonElement contentArray) &&
                                 contentArray.ValueKind == JsonValueKind.Array && contentArray.GetArrayLength() > 0)
                                 if (contentArray[0].TryGetProperty("id", out JsonElement idProp))
                                     funcionarioIdReal = idProp.ToString();

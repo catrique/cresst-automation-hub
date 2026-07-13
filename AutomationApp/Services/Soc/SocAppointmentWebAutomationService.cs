@@ -58,7 +58,7 @@ namespace AutomationApp.Services.Soc
                         await selectTipo.SelectOptionAsync(new[] { tipoCompromissoValor });
                         await Task.Delay(1500);
 
-                        var campoCpfBusca = frame.Locator("#cpfBusca"); // Certifique-se de ajustar este ID se a tela usar outro seletor
+                        var campoCpfBusca = frame.Locator("#cpfBusca");
                         if (await campoCpfBusca.IsVisibleAsync())
                         {
                             await campoCpfBusca.FillAsync(app.Cpf);

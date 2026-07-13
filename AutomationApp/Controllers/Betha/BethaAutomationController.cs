@@ -34,5 +34,17 @@ namespace AutomationApp.Controllers.Betha
 
             Console.ReadKey(true);
         }
+
+        public async Task<string> ExportEmployeeNamesAsync()
+        {
+            Console.Clear();
+            MessageConsole.Info("=== OBTER LISTAGEM DE SERVIDORES NO BETHA ===");
+            Action<string> logger = message => Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {message}");
+            var bethaService = new BethaReportEmployeeService(logger);
+            string pathSpreadsheet = await bethaService.GenerateExcelEmployeeNamesBethaAsync();
+
+            MessageConsole.Success($"\n✅ Arquivo detectado com sucesso: {Path.GetFileName(pathSpreadsheet)}\n");
+            return pathSpreadsheet;
+        }
     }
 }
