@@ -9,7 +9,7 @@ namespace AutomationApp.Controllers.Betha
         {
             Console.Clear();
             MessageConsole.Info("\n=== LANÇAMENTO DE ASOS VIA API (BETHA) ===");
-            Console.Write("\nDigite ou cole o caminho completo da planilha Excel:\n> ");
+            MessageConsole.Info("\nDigite ou cole o caminho completo da planilha Excel:\n> ");
             string pathSpreadsheet = Console.ReadLine()?.Trim() ?? "";
             pathSpreadsheet = pathSpreadsheet.Trim('"');
 
@@ -45,6 +45,18 @@ namespace AutomationApp.Controllers.Betha
 
             MessageConsole.Success($"\n✅ Arquivo detectado com sucesso: {Path.GetFileName(pathSpreadsheet)}\n");
             return pathSpreadsheet;
+        }
+
+        public async Task<string> getAuthorizationToken()
+        {
+            Console.Clear();
+            MessageConsole.Info("=== OBTER TOKEN NO BETHA ===");
+            Action<string> logger = message => Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {message}");
+            var bethaService = new BethaUpdateTokenService(logger);
+            string token = await bethaService.UpdateToken();
+
+            MessageConsole.Success($"\n✅ Token capturado com sucesso");
+            return token;
         }
     }
 }

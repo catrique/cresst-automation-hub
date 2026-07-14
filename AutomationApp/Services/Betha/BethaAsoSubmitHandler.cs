@@ -29,7 +29,7 @@ namespace AutomationApp.Services.Betha
                 throw new Exception("Erro de Configuração: alguma rota obrigatória está ausente no appsettings.");
             }
 
-            _storageService.ValidatePdfFile(asoRow.PdfPath);
+            _storageService.ValidatePdfFile(asoRow.CaminhoPDF);
             string tipoExameNorm = _rulesService.NormalizeExamType(asoRow.TipoExame);
 
             if (string.IsNullOrWhiteSpace(asoRow.MedicoExaminador) || string.IsNullOrWhiteSpace(asoRow.MedicoPcmso))
@@ -89,7 +89,7 @@ namespace AutomationApp.Services.Betha
             long medicoExaminadorId = await BuscarMedicoIdAsync(middleware, endpointProfissional, asoRow.MedicoExaminador.Trim());
             long medicoPcmsoId = await BuscarMedicoIdAsync(middleware, endpointProfissional, asoRow.MedicoPcmso.Trim());
 
-            string caminhoLimpoPdf = asoRow.PdfPath.Replace("\"", "").Trim();
+            string caminhoLimpoPdf = asoRow.CaminhoPDF.Replace("\"", "").Trim();
             Console.WriteLine($"-> Transmitindo arquivo PDF...");
             string? uploadResponse = await middleware.UploadFileRequestAsync(endpointAttachment, caminhoLimpoPdf);
             if (string.IsNullOrEmpty(uploadResponse))

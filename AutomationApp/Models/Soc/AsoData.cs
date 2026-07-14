@@ -11,6 +11,6 @@ public class AsoData
     public string DataExame        { get; set; } = "";
     public string MedicoExaminador { get; set; } = "";
     public string MedicoPcmso     { get; set; } = "";
-    public string PdfPath          { get; set; } = "";
+    public string CaminhoPDF          { get; set; } = "";
     public bool   LeituraOk        { get; set; }
 }

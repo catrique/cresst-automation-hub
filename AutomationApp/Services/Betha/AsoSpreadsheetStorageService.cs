@@ -26,9 +26,9 @@ namespace AutomationApp.Services.Betha
                 {
                     var worksheet = workbook.Worksheet(1);
                     var linhaExcel = worksheet.Row(linhaPlanilha);
-                    linhaExcel.Cell(12).Value = status.Trim().ToUpper();
-                    linhaExcel.Cell(13).Value = observacao ?? string.Empty;
-                    ConfigurarEstiloStatus(linhaExcel.Cell(12), linhaExcel.Cell(13), status);
+                    linhaExcel.Cell(11).Value = status.Trim().ToUpper();
+                    linhaExcel.Cell(12).Value = observacao ?? string.Empty;
+                    ConfigurarEstiloStatus(linhaExcel.Cell(11), linhaExcel.Cell(12), status);
                     workbook.Save();
                 }
             }

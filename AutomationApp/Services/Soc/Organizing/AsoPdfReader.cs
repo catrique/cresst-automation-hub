@@ -35,7 +35,7 @@ public class AsoPdfReader
                 DataExame = ExtractDataExame(text) ?? "",
                 MedicoExaminador = ExtractMedicoExaminador(text) ?? "",
                 MedicoPcmso = ExtractMedicoPcmso(text) ?? "",
-                PdfPath = pdfPath,
+                CaminhoPDF = pdfPath,
                 LeituraOk = true
             };
 
@@ -61,7 +61,7 @@ public class AsoPdfReader
     }
 
     private static AsoData FailedRead(string path) =>
-        new() { PdfPath = path, LeituraOk = false };
+        new() { CaminhoPDF = path, LeituraOk = false };
 
     private static string Clean(string text) =>
         Regex.Replace(

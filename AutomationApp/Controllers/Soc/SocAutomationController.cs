@@ -2,6 +2,7 @@ using AutomationApp.Services.Soc;
 using AutomationApp.Utils;
 using AutomationApp.Models.Soc;
 using Microsoft.Playwright;
+using AutomationApp.Services.Soc.Organizing;
 
 namespace AutomationApp.Controllers.Soc
 {
@@ -19,7 +20,7 @@ namespace AutomationApp.Controllers.Soc
             Console.Clear();
             MessageConsole.Info("=== HIGIENIZAÇÃO E CADASTRO DE FUNCIONÁRIOS (SOC) ===");
 
-            Console.Write("\nDigite ou cole o caminho completo da planilha Excel:\n> ");
+            MessageConsole.Info("\nDigite ou cole o caminho completo da planilha Excel:\n> ");
             string pathSpreadsheet = Console.ReadLine()?.Trim() ?? "";
             pathSpreadsheet = pathSpreadsheet.Trim('\"');
 
@@ -37,8 +38,9 @@ namespace AutomationApp.Controllers.Soc
 
             MessageConsole.Success($"\n✅ Arquivo detectado com sucesso: {Path.GetFileName(pathSpreadsheet)}\n");
 
-            Console.Write("--- Qual é o Setor Base/Padrão?\n> ");
-            string setorBase = Console.ReadLine()?.Trim() ?? "";
+            MessageConsole.Info("--- Qual é o Setor Base/Padrão?\n> 1 - EDUCAÇÃO\n> 2 - SAÚDE\n> 3 - ADMINISTRATIVO\n> ");
+            int setorBase = int.Parse(Console.ReadLine()?.Trim() ?? "1");
+
 
             _logger("Iniciando processamento da planilha de funcionários...");
             var integrationService = new SocEmployeeIntegrationService(_logger);
@@ -51,7 +53,7 @@ namespace AutomationApp.Controllers.Soc
 
             MessageConsole.Success("\n✅ Processo de Cadastro de Funcionários Finalizado!");
 
-            Console.Write("\n👉 Deseja prosseguir para os Agendamentos de Exames (Tela 236) usando esta mesma janela do navegador? (S/N): ");
+            MessageConsole.Info("\n👉 Deseja prosseguir para os Agendamentos de Exames (Tela 236) usando esta mesma janela do navegador? (S/N): ");
             string resposta = Console.ReadLine()?.Trim().ToUpper() ?? "N";
 
             if (resposta == "S" || resposta == "SIM")
@@ -77,7 +79,7 @@ namespace AutomationApp.Controllers.Soc
 
             if (string.IsNullOrWhiteSpace(pathSpreadsheet))
             {
-                Console.Write("\nDigite ou cole o caminho completo da planilha Excel de Agendamentos:\n> ");
+                MessageConsole.Info("\nDigite ou cole o caminho completo da planilha Excel de Agendamentos:\n> ");
                 pathSpreadsheet = Console.ReadLine()?.Trim() ?? "";
                 pathSpreadsheet = pathSpreadsheet.Trim('\"');
             }
@@ -95,7 +97,7 @@ namespace AutomationApp.Controllers.Soc
             Console.WriteLine("4️⃣ - Mudança de Riscos Ocupacionais");
             Console.WriteLine("5️⃣ - Demissional");
             Console.WriteLine("6️⃣ - Monitoração Pontual");
-            Console.Write("\n Escolha uma opção (1-6): ");
+            MessageConsole.Info("\n Escolha uma opção (1-6): ");
 
             string tipoCompromisso = Console.ReadLine()?.Trim() ?? "1";
             var appointmentIntegration = new SocAppointmentIntegrationService(_logger);
@@ -115,10 +117,10 @@ namespace AutomationApp.Controllers.Soc
 
             if (string.IsNullOrWhiteSpace(dataInicio) || string.IsNullOrWhiteSpace(dataFim))
             {
-                Console.Write("Digite a data de início (dd/MM/yyyy): ");
+                MessageConsole.Info("Digite a data de início (dd/MM/yyyy): ");
                 dataInicio = Console.ReadLine();
 
-                Console.Write("Digite a data de fim (dd/MM/yyyy): ");
+                MessageConsole.Info("Digite a data de fim (dd/MM/yyyy): ");
                 dataFim = Console.ReadLine();
             }
 
@@ -188,6 +190,44 @@ namespace AutomationApp.Controllers.Soc
             {
                 MessageConsole.Error($"Erro durante a execução da automação: {ex.Message}");
                 return true;
+            }
+        }
+
+        public async Task OrganizeAsosAsync()
+        {
+            Console.Clear();
+            MessageConsole.Info("=== ORGANIZAÇÃO DE ASOs (SOC) ===");
+
+            MessageConsole.Info("\nDigite ou cole o caminho da pasta:\n> ");
+            string dirPath = Console.ReadLine()?.Trim() ?? "";
+            dirPath = dirPath.Trim('\"');
+
+            if (string.IsNullOrWhiteSpace(dirPath))
+            {
+                MessageConsole.Error("\n❌ Erro: O caminho da pasta não pode ser vazio.");
+                return;
+            }
+
+            if (!Directory.Exists(dirPath))
+            {
+                MessageConsole.Error($"\n❌ Erro: A pasta não foi encontrada:\n[{dirPath}]");
+                return;
+            }
+
+            MessageConsole.Success($"\n✅ Pasta detectada com sucesso: {Path.GetFileName(dirPath)}\n");
+
+
+            try
+            {
+                _logger("Iniciando o processo de organização de ASOs...");
+                var asoOrganizerService = new AsoOrganizerService(_logger);
+                await asoOrganizerService.OrganizeAsync(dirPath);
+
+                _logger("Pipeline de organização de ASOs finalizado com sucesso.");
+            }
+            catch (Exception ex)
+            {
+                MessageConsole.Error($"Erro durante a execução da automação: {ex.Message}");
             }
         }
     }

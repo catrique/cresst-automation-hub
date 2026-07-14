@@ -39,7 +39,7 @@ public class AsoFileOrganizer
         var newFilename = BuildFilename(data);
         var destPath = ResolveUniqueFilePath(destDir, newFilename);
 
-        File.Move(data.PdfPath, destPath);
+        File.Move(data.CaminhoPDF, destPath);
         return destPath;
     }
 
@@ -48,7 +48,7 @@ public class AsoFileOrganizer
     {
         var nome = data.LeituraOk && !string.IsNullOrWhiteSpace(data.Funcionario)
             ? NormalizeName(data.Funcionario)
-            : $"erro_leitura_{Path.GetFileNameWithoutExtension(data.PdfPath)}";
+            : $"erro_leitura_{Path.GetFileNameWithoutExtension(data.CaminhoPDF)}";
 
         nome = TruncateName(nome, maxLength: 60);
 

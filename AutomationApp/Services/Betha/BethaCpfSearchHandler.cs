@@ -1,6 +1,6 @@
 using System;
 using System.Text.Json;
-using System.Threading.Tasks;
+using AutomationApp.Utils;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AutomationApp.Services.Betha
@@ -9,7 +9,7 @@ namespace AutomationApp.Services.Betha
     {
         public async Task<string?> PromptAndGetEmployeeIdAsync()
         {
-            Console.Write("Digite o CPF do funcionário para buscar o ID real: ");
+            MessageConsole.Info("Digite o CPF do funcionário para buscar o ID real: ");
             string cpfInput = Console.ReadLine()?.Trim() ?? string.Empty;
 
             if (string.IsNullOrWhiteSpace(cpfInput))

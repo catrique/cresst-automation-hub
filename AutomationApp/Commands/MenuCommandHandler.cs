@@ -1,6 +1,7 @@
 using AutomationApp.Controllers.Betha;
 using AutomationApp.Controllers.Config;
 using AutomationApp.Controllers.Soc;
+using Spectre.Console;
 
 namespace AutomationApp.Commands
 {
@@ -11,91 +12,105 @@ namespace AutomationApp.Commands
             while (true)
             {
                 Console.Clear();
-                Console.ForegroundColor = ConsoleColor.Cyan;
-                Console.WriteLine("==================================================");
-                Console.WriteLine("            CRESST AUTOMATION CLI                 ");
-                Console.WriteLine("==================================================");
-                Console.ResetColor();
-                Console.WriteLine("1. Baixar e Organizar ASOs (SOC)");
-                Console.WriteLine("2. Atualizar Credenciais do SOC");
-                Console.WriteLine("3. Atualizar Credenciais do Betha");
-                Console.WriteLine("4. Atualizar Configurações de Proxy");
-                Console.WriteLine("5. Atualizar Token");
-                Console.WriteLine("6. Lançar ASOs via API (Betha)");
-                Console.WriteLine("7. Higienizar e Validar Funcionários (SOC)");
-                Console.WriteLine("8. Agendar Compromissos/Exames (SOC)");
-                Console.WriteLine("9. Corrigir nomes do SOC");
-                Console.WriteLine("0. Sair");
-                Console.Write("\nEscolha uma opção: ");
+                AnsiConsole.Write(
+                    new FigletText("CRESST AUTOMATION")
+                        .Centered()
+                        .Color(Color.Cyan1));
 
-                string opcao = Console.ReadLine()?.Trim() ?? "";
+                AnsiConsole.Write(new Rule("[yellow]PAINEL DE AUTOMAÇÕES E INTEGRAÇÃO[/]").Centered());
+                Console.WriteLine();
 
-                if (opcao == "0")
+                var selectedOption = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .Title("Selecione a operação que deseja executar:")
+                        .PageSize(12)
+                        .MoreChoicesText("[grey](Mova com as setas ↑ e ↓, confirme com Enter)[/]")
+                        .AddChoices(new[] {
+                            "1. Baixar e Organizar ASOs (SOC)",
+                            "2. Organizar ASOs (Diretório SOC)",
+                            "3. Atualizar Credenciais do SOC",
+                            "4. Atualizar Credenciais do Betha",
+                            "5. Atualizar Configurações de Proxy",
+                            "6. Atualizar Token de Autorização",
+                            "7. Lançar ASOs via API (Betha)",
+                            "8. Higienizar e Validar Funcionários (SOC)",
+                            "9. Agendar Compromissos/Exames (SOC)",
+                            "10. Corrigir Nomes de Funcionários no SOC",
+                            "0. Sair do Sistema"
+                        }));
+
+                if (selectedOption.StartsWith("0"))
                 {
-                    Console.WriteLine("Saindo do sistema...");
+                    AnsiConsole.MarkupLine("[yellow]Saindo do sistema... Até logo![/]");
                     break;
                 }
 
-                await ProcessarOpcaoAsync(opcao);
+                string optionKey = selectedOption.Split('.')[0].Trim();
+
+                await ProcessOptionAsync(optionKey);
+
+                AnsiConsole.MarkupLine("\nPressione [green]qualquer tecla[/] para voltar ao menu principal...");
+                Console.ReadKey(true);
             }
 
             return 0;
         }
 
-        private async Task ProcessarOpcaoAsync(string opcao)
+        private async Task ProcessOptionAsync(string option)
         {
             var configController = new ConfigAutomationController();
+            var bethaController = new BethaAutomationController();
+            var socController = new SocAutomationController();
 
-            switch (opcao)
+            switch (option)
             {
                 case "1":
-                    var socController = new SocAutomationController();
                     await socController.DownloadAsosAsync();
                     break;
 
                 case "2":
-                    await configController.UpdateSocCredentialsAsync();
+                    await socController.OrganizeAsosAsync();
                     break;
 
                 case "3":
-                    await configController.UpdateBethaCredentialsAsync();
+                    await configController.UpdateSocCredentialsAsync();
                     break;
 
                 case "4":
-                    await configController.UpdateProxySettingsAsync();
-                    break;
-                case "5":
-                    await configController.UpdateBearerTokenSettingsAsync();
+                    await configController.UpdateBethaCredentialsAsync();
                     break;
 
+                case "5":
+                    await configController.UpdateProxySettingsAsync();
+                    break;
                 case "6":
-                    var bethaController = new BethaAutomationController();
+                    string token =await bethaController.getAuthorizationToken();
+                    await configController.UpdateBearerTokenSettingsAsync(token);
+                    break;
+
+                case "7":
                     await bethaController.SubmitAsosAsync();
                     break;
-                case "7":
+                case "8":
                     var socEmployeeController = new SocAutomationController();
                     await socEmployeeController.RegisterEmployeesAsync();
                     break;
-                case "8":
+                case "9":
                     var socAppointmentController = new SocAutomationController();
                     await socAppointmentController.ScheduleAppointmentsAsync(paginaAtiva: null);
                     break;
-                case "9":
+                case "10":
                     var socUpdateEmployeeNamesController = new SocAutomationController();
                     // var bethaExportEmployeeNamesController = new BethaAutomationController();
                     // string pathSpreadsheetBethaEmployeeNames = await bethaExportEmployeeNamesController.ExportEmployeeNamesAsync();
                     string pathSpreadsheetBethaEmployeeNames = @"C:\Users\42706671840\Downloads\cresst-workspace\relatorios\employees_09-07-2026_12-24.xlsx";
                     await socUpdateEmployeeNamesController.UpdateEmployeeNamesAsync(pathSpreadsheetBethaEmployeeNames);
                     break;
+
                 default:
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("\n❌ Opção inválida!");
-                    Console.ResetColor();
+                    AnsiConsole.MarkupLine("[red]❌ Opção inválida selecionada![/]");
                     break;
             }
-
-            Console.WriteLine("\nPressione qualquer tecla para voltar ao menu...");
-            Console.ReadKey();
         }
     }
 }

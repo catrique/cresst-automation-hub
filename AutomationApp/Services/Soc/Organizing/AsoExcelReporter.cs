@@ -8,8 +8,9 @@ public class AsoExcelReporter
     private static readonly string[] Headers =
     [
         "Funcionário", "CPF", "Matrícula", "Cargo", "Tipo Exame",
-        "Resultado", "Data Exame", "Médico Examinador", "Médico PCMSO", "Caminho PDF"
+        "Resultado", "Data Exame", "Médico Examinador", "Médico PCMSO", "Caminho PDF", "Status Processamento", "Motivo Status"
     ];
+
 
     public void Generate(IReadOnlyList<AsoData> records, string outputFolder)
     {
@@ -52,7 +53,7 @@ public class AsoExcelReporter
             ws.Cell(row, 7).Value  = d.DataExame;
             ws.Cell(row, 8).Value  = d.MedicoExaminador;
             ws.Cell(row, 9).Value  = d.MedicoPcmso;
-            ws.Cell(row, 10).Value = d.PdfPath;
+            ws.Cell(row, 10).Value = d.CaminhoPDF;
         }
     }
 }

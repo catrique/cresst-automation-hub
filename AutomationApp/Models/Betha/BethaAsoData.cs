@@ -12,10 +12,9 @@ namespace AutomationApp.Models.Betha
         public string TipoExame { get; set; } = string.Empty;
         public string Resultado { get; set; } = string.Empty;
         public string DataExame { get; set; } = string.Empty;
-        public string DataInicio { get; set; } = string.Empty;
         public string MedicoExaminador { get; set; } = string.Empty;
         public string MedicoPcmso { get; set; } = string.Empty;
-        public string PdfPath { get; set; } = string.Empty;
+        public string CaminhoPDF { get; set; } = string.Empty;
         public string StatusProcessamento { get; set; } = "PENDENTE"; 
         public string MotivoStatus { get; set; } = string.Empty;
     }

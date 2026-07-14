@@ -34,7 +34,7 @@ public class AsoOrganizerService : IAsoOrganizerService
             data.TipoExame = _organizer.ResolveExamType(data.TipoExame);
 
             var newPath  = _organizer.MoveToSubfolder(data, folderPath);
-            data.PdfPath = newPath;
+            data.CaminhoPDF = newPath;
 
             if (data.LeituraOk)
             {

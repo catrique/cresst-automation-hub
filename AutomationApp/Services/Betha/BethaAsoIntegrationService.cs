@@ -50,10 +50,9 @@ namespace AutomationApp.Services.Betha
                             TipoExame = line.Cell(5).GetString().Trim(),
                             Resultado = line.Cell(6).GetString().Trim(),
                             DataExame = line.Cell(7).GetString().Trim(),
-                            DataInicio = line.Cell(8).GetString().Trim(),
-                            MedicoExaminador = line.Cell(9).GetString().Trim(),
-                            MedicoPcmso = line.Cell(10).GetString().Trim(),
-                            PdfPath = line.Cell(11).GetString().Trim(),
+                            MedicoExaminador = line.Cell(8).GetString().Trim(),
+                            MedicoPcmso = line.Cell(9).GetString().Trim(),
+                            CaminhoPDF = line.Cell(10).GetString().Trim(),
                             StatusProcessamento = "PENDENTE"
                         };
                         listAsos.Add(aso);

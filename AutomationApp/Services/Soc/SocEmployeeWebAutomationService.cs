@@ -14,7 +14,7 @@ namespace AutomationApp.Services.Soc
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task ExecuteWebAutomationAsync(List<SocEmployeeData> employees, string setorPlanilhaBase)
+        public async Task ExecuteWebAutomationAsync(List<SocEmployeeData> employees, int setorPlanilhaBase)
         {
             if (employees == null || employees.Count == 0)
             {
@@ -22,7 +22,7 @@ namespace AutomationApp.Services.Soc
                 return;
             }
 
-            string setorPadraoFallback = string.IsNullOrWhiteSpace(setorPlanilhaBase) ? "EDUCAÇÃO" : setorPlanilhaBase.Trim().ToUpper();
+            string setorPadraoFallback = setorPlanilhaBase == 1 ? "EDUCAÇÃO" : setorPlanilhaBase == 2 ? "SAÚDE" : "ADMINISTRATIVO";
 
             try
             {

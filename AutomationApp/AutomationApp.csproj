@@ -15,6 +15,7 @@
     <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.9" />
     <PackageReference Include="Microsoft.Playwright" Version="1.60.0" />
     <PackageReference Include="PdfPig" Version="0.1.14" />
+    <PackageReference Include="Spectre.Console" Version="0.57.2" />
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.8" />
   </ItemGroup>
 

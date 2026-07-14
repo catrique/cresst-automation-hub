@@ -96,15 +96,12 @@ namespace AutomationApp.Controllers.Config
             return 0;
         }
 
-        public async Task<int> UpdateBearerTokenSettingsAsync()
+        public async Task<int> UpdateBearerTokenSettingsAsync(string token)
         {
             Console.Clear();
             Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine("=== ATUALIZAR BEARER TOKEN ===");
+            Console.WriteLine("=== ATUALIZANDO BEARER TOKEN ===");
             Console.ResetColor();
-
-            Console.Write("Digite o TOKEN: ");
-            string token = Console.ReadLine()?.Trim() ?? "";
 
             if (string.IsNullOrWhiteSpace(token))
             {

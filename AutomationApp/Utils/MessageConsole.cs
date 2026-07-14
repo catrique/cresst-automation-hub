@@ -1,32 +1,44 @@
+using Spectre.Console;
+
 namespace AutomationApp.Utils
 {
     public static class MessageConsole
     {
-        private static void Write(
-            string message,
-            ConsoleColor color,
-            bool resetColor = true)
+        public static void Header(string title)
         {
-            Console.ForegroundColor = color;
-            Console.WriteLine(message);
+            Console.Clear();
+            AnsiConsole.Write(new Rule($"[cyan]{title}[/]").Justify(Justify.Left));
+            Console.WriteLine();
+        }
 
-            if (resetColor)
-                Console.ResetColor();
+        public static void Clear()
+        {
+            Console.Clear();
         }
 
         public static void Error(string message, bool resetColor = true)
-            => Write(message, ConsoleColor.Red, resetColor);
+        {
+            AnsiConsole.MarkupLine($"[red]❌ {message}[/]");
+        }
 
         public static void Success(string message, bool resetColor = true)
-            => Write(message, ConsoleColor.Green, resetColor);
+        {
+            AnsiConsole.MarkupLine($"[green]✔ {message}[/]");
+        }
 
         public static void Warning(string message, bool resetColor = true)
-            => Write(message, ConsoleColor.Yellow, resetColor);
+        {
+            AnsiConsole.MarkupLine($"[yellow]⚠ {message}[/]");
+        }
 
         public static void Info(string message, bool resetColor = true)
-            => Write(message, ConsoleColor.Cyan, resetColor);
+        {
+            AnsiConsole.MarkupLine($"[cyan]ℹ {message}[/]");
+        }
 
         public static void Default(string message, bool resetColor = true)
-            => Write(message, ConsoleColor.Gray, resetColor);
+        {
+            AnsiConsole.MarkupLine(message);
+        }
     }
 }

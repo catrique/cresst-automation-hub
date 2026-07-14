@@ -5,7 +5,7 @@ namespace AutomationApp.Services
 {
     public class PlaywrightBrowserFactory
     {
-        public static async Task<(IBrowser Browser, IBrowserContext Context)> CreateChromiumContextAsync()
+        public static async Task<(IBrowser Browser, IBrowserContext Context)> CreateChromiumContextAsync(bool headless = false)
         {
             var playwright = await Playwright.CreateAsync();
             var proxyOptions = new Proxy
@@ -21,13 +21,16 @@ namespace AutomationApp.Services
 
             var launchOptions = new BrowserTypeLaunchOptions
             {
-                Headless = !Program.Settings.DebugMode,
+                Headless = headless,
                 Proxy = proxyOptions,
                 Args = new[]
                 {
                     "--start-maximized",
                     "--disable-extensions",
-                    "--disable-popup-blocking"
+                    "--disable-popup-blocking",
+                    "--disable-blink-features=AutomationControlled",
+                    "--no-sandbox",
+                    "--disable-dev-shm-usage"
                 }
             };
 
@@ -35,7 +38,10 @@ namespace AutomationApp.Services
             var contextOptions = new BrowserNewContextOptions
             {
                 ViewportSize = new ViewportSize {Width= 1920, Height = 1080},
-                AcceptDownloads = true               
+                AcceptDownloads = true,      
+                UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                Locale = "pt-BR",
+                TimezoneId = "America/Sao_Paulo"         
             };
 
             var context = await browser.NewContextAsync(contextOptions);
